@@ -1,0 +1,68 @@
+# Build output
+build/
+out/
+bin/
+alg/main
+*.o
+*.obj
+*.d
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+cmake-build-*/
+compile_commands.json
+
+# Cache
+.cache/
+__pycache__/
+*.pyc
+node_modules/
+.clangd/
+.ccls-cache/
+
+# Python
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.ipynb_checkpoints/
+*.egg-info/
+dist/
+.coverage
+htmlcov/
+.env
+
+# IDE / editors
+.idea/
+*.iml
+.vscode/
+.vs/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / debug
+*.log
+core
+core.*
+vgcore.*
+*.dSYM/
