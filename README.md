@@ -36,4 +36,4 @@ cd alg && make
 - Możliwość wgrania zewnętrznego zestawu danych testowych do weryfikacji (sprawdzic jakie mamy opcje)
 
 # Komunikacja (etap 2)
-Sockety TCP + JSON, opis w `docs/protocol.md`.
+Sockety TCP (protokół do zaprojektowania).

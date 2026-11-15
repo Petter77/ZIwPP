@@ -1,7 +1,7 @@
 # Architektura projektu
 
 Status: **szkic do uzgodnienia z zespołem**. Rzeczy oznaczone (?) nie są jeszcze zdecydowane.
-Pliki `format.md` i `protocol.md` w tym katalogu są wcześniejszymi propozycjami i nie są zatwierdzone.
+Plik `format.md` w tym katalogu jest propozycją formatu instancji i nie jest jeszcze zatwierdzony.
 
 ## 1. Przepływ danych
 
