@@ -18,7 +18,7 @@ Generator ──zapis──> plik (format.md) ──Instance::load/parse──> 
 
 | Część | Co robi | Czego nie robi |
 |---|---|---|
-| **Instance** | przechowuje `n`, `m`, `p`, `s` i wartość odniesienia; pilnuje niezmienników; wczytuje się z pliku i tekstu; zapisuje się do pliku | nie rozwiązuje, nie liczy makespanu |
+| **Instance** | przechowuje `n`, `m`, `p`, `s`; pilnuje niezmienników; wczytuje się z pliku i tekstu; zapisuje się do pliku | nie rozwiązuje, nie liczy makespanu |
 | **Format pliku** | opisuje układ danych (jedyne źródło prawdy: `format.md`) | – |
 | **Generator** | tworzy `Instance` z parametrów (n, m, ziarno, zakresy) i zapisuje ją przez `Instance::save` | nie jest częścią algorytmów ani aplikacji |
 | **Evaluator** | z `Instance` i permutacji liczy makespan i pełny harmonogram (czasy startu przezbrojeń i operacji) | nie szuka rozwiązań |
@@ -34,12 +34,10 @@ Generator i parser używają tego samego formatu, więc plik zapisany przez gene
 | `m` | liczba maszyn | ≥ 1 |
 | `p[i][j]` | czas operacji zadania `j` na maszynie `i` | `m × n`, wartości ≥ 1 |
 | `s[i][j][k]` | przezbrojenie na maszynie `i` z zadania `j` na `k` | `m × n × n`, wartości ≥ 1 |
-| `ref`, `typ` | wartość odniesienia makespanu i jej rodzaj (0 brak, 1 optimum, 2 ograniczenie górne, 3 wynik algorytmu) | `ref = -1` tylko dla `typ = 0` |
 
 Niezmienniki, których pilnuje klasa, tak że nie ma „częściowo poprawnej” instancji:
 - wymiary macierzy zgodne z `n` i `m`,
 - wszystkie `p` i `s` dodatnie (także przekątna `s[i][k][k]`, czyli przezbrojenie początkowe, jak w dokumencie prowadzącego),
-- poprawna kombinacja `ref` i `typ`.
 
 Po utworzeniu instancja jest **niezmienna** (tylko do odczytu). Algorytmy mogą ją dzielić bez kopiowania.
 
@@ -67,7 +65,6 @@ Instancja nie przechowuje rozwiązania. Rozwiązanie to osobne pojęcie:
 ## 5. Format pliku (podsumowanie)
 ```
 n m
-ref typ
 p: m linii po n liczb (wiersz = maszyna)
 s: dla każdej maszyny n linii po n liczb (wiersz = zadanie j, kolumna = zadanie k)
 ```
@@ -80,6 +77,6 @@ Pełny opis i przykład: `format.md`.
 
 ## 7. Decyzje jeszcze otwarte
 - Język i dokładne parametry **generatora** (zakresy `p` i `s`, ziarno).
-- Czy `ref` ma być wpisywany automatycznie, gdy generator zdoła policzyć optimum dla małej instancji.
+- Gdzie przechowywać wartości odniesienia (znane optimum, najlepszy znany wynik), skoro nie ma ich w pliku instancji.
 - Czy `Instance` zapisujemy też w innej postaci niż tekst (np. JSON dla etapu 2). Rekomendacja: na razie jeden format
   tekstowy i `parse` ze strumienia, bo tego wymaga socket.

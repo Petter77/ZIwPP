@@ -20,7 +20,6 @@ Kolejność:
 
 ```
 n m
-ref typ
 p[0][0] ... p[0][n-1]            <- m linii po n liczb (wiersz = maszyna)
 ...
 p[m-1][0] ... p[m-1][n-1]
@@ -28,35 +27,20 @@ s[0][0][0] ... s[0][0][n-1]      <- dla każdej maszyny n linii po n liczb (wier
 ...
 s[m-1][n-1][0] ... s[m-1][n-1][n-1]
 ```
-Razem `2 + m + m·n` linii.
-
-### Wartość odniesienia
-Linia `ref typ` niesie znany wynik dla tej instancji, żeby algorytmy i skrypty porównań nie potrzebowały osobnych plików.
-- `ref` – makespan odniesienia, `-1` gdy nieznany,
-- `typ` – rodzaj wartości:
-
-| typ | znaczenie |
-|---|---|
-| 0 | brak wartości (`ref = -1`) |
-| 1 | optimum (np. policzone przeglądem zupełnym) |
-| 2 | najlepsze znane ograniczenie górne |
-| 3 | wynik heurystyki lub metaheurystyki (jakiej – opisać poza plikiem) |
-
-Generator zapisuje `-1 0`, chyba że sam policzy wartość dokładnie.
+Razem `1 + m + m·n` linii z danymi. Między częściami (nagłówek, `p`, `s`) wstawiamy dla czytelności jedną pustą linię;
+puste linie są ignorowane przy wczytywaniu, tak jak każde inne białe znaki.
 
 ## Walidacja przy wczytywaniu
 - `n ≥ 1`, `m ≥ 1`,
 - `p[i][j] ≥ 1`,
 - `s[i][j][k] ≥ 1` (także przekątna `s[i][k][k]`: dokument wymaga `s ∈ N+`),
 - dokładnie tyle liczb, ile wynika z `n` i `m` – brak liczb lub nadmiar to błąd,
-- `typ ∈ {0..3}`; `ref = -1` tylko dla `typ = 0`, a dla `typ ≠ 0` `ref ≥ 1`.
 
 Wczytywanie rzuca błąd z czytelnym komunikatem (wymaganie „odporna na błędy” w etapie 2).
 
 ## Przykład (n = 3, m = 2)
 ```
 3 2
--1 0
 10 20 30
 15 25 5
 1 2 3
