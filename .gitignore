@@ -3,6 +3,8 @@ build/
 out/
 bin/
 alg/main
+alg/generator
+instances/
 *.o
 *.obj
 *.d
