@@ -115,5 +115,26 @@ optimum znalezione w 27 z 30.
 Dla bardzo dużych instancji czas rośnie głównie przez lokalne przeszukiwanie (jedno pełne przejście to około `n²`
 ocen po `n·m` operacji); można je wyłączyć (`local_search=0`) albo zmniejszyć `generations`.
 
+**Porównanie z NEH i optimum** (te same instancje, parametry domyślne GA, ziarno algorytmu 1).
+
+30 instancji 9×5 (ziarna 1–30), optimum z `bruteforce`:
+
+| Algorytm | optimum znalezione | średnia luka do optimum |
+|---|---|---|
+| NEH | 2 z 30 | 3,62% |
+| GA | 27 z 30 | 0,03% |
+
+Średni makespan z 10 instancji (ziarna 1–10) na rozmiar:
+
+| Rozmiar | NEH (czas) | GA (czas) | GA lepszy od NEH |
+|---|---|---|---|
+| 20×5 | 1678,6 (<0,01 s) | 1593,7 (0,2 s) | 10 z 10 |
+| 50×10 | 4270,5 (<0,01 s) | 4189,2 (0,5 s) | 8 z 10 |
+| 100×20 | 9021,0 (0,02 s) | 8882,1 (2,6 s) | 10 z 10 |
+| 200×20 | 16394,6 (0,12 s) | 16285,7 (9,8 s) | 8 z 10 |
+
+Przewaga GA nad NEH maleje wraz z liczbą zadań (z ok. 5% do 0,7%), a NEH jest dużo szybszy.
+Parametry domyślne GA były dobierane na innych instancjach z tego samego generatora.
+
 ## 6. Czego nie ma
 Limitu czasu i przerywania obliczeń (potrzebne w etapie 2).

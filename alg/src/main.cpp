@@ -3,8 +3,10 @@
 #include <stdexcept>
 #include <string>
 
+#include "algorithms/bruteforce.h"
 #include "algorithms/genetic.h"
 #include "algorithms/identity.h"
+#include "algorithms/neh.h"
 #include "instance.h"
 
 // Dodaje do params tekst w postaci nazwa=liczba. Zwraca false, gdy tekst ma inną postać.
@@ -28,6 +30,10 @@ static bool addParam(const std::string &text, Params &params) {
 static std::unique_ptr<Algorithm> makeAlgorithm(const std::string &name) {
   if (name == "genetic")
     return std::make_unique<Genetic>();
+  if (name == "neh")
+    return std::make_unique<Neh>();
+  if (name == "bruteforce")
+    return std::make_unique<BruteForce>();
   if (name == "identity")
     return std::make_unique<Identity>();
   return nullptr;
@@ -57,7 +63,7 @@ int main(int argc, char **argv) {
   std::unique_ptr<Algorithm> algorithm = makeAlgorithm(algorithmName);
   if (badUsage || path.empty() || !algorithm) {
     std::cerr << "Użycie: " << argv[0]
-              << " <plik_instancji> [--algo genetic|identity] [--param nazwa=liczba]... [--verbose]\n";
+              << " <plik_instancji> [--algo genetic|neh|bruteforce|identity] [--param nazwa=liczba]... [--verbose]\n";
     return 1;
   }
 

@@ -131,6 +131,7 @@ Program uruchomiony z `--verbose` pokazuje, co dzieje się wewnątrz algorytmu:
 i loguje jeden komunikat jako przykład użycia `log`.
 Służy jako wzór klasy pochodnej i punkt odniesienia dla prawdziwych algorytmów, a nie jako algorytm do oddania.
 Przykład algorytmu z parametrami, ziarnem i sprawdzaniem wartości: `Genetic` (`genetyczny.md`).
+Pozostałe algorytmy: `neh` i `bruteforce` (`neh_bruteforce.md`).
 
 ## 8. Czego jeszcze nie ma
 - **Pełny harmonogram (czasy rozpoczęcia przezbrojeń i operacji)** – będzie potrzebny do diagramu Gantta w etapie 2.
