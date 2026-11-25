@@ -27,11 +27,12 @@ Każdy algorytm to osobna klasa dziedzicząca po `Algorithm` (`alg/include/algor
 ```cpp
 class Algorithm {
   virtual std::string name() const = 0;
-  virtual Result run(const Instance &inst, const Params &params) const = 0;
+  virtual Result run(const Instance &inst, const Params &params, const Logger &log) const = 0;
 };
 ```
 - `Instance` – wczytana instancja (algorytm nigdy nie czyta ani nie zapisuje plików),
 - `Params` – parametry algorytmu jako mapa `nazwa -> liczba` (na razie nieużywane),
+- `Logger` – funkcja, do której algorytm zgłasza, co robi (`log("tekst")`); działa przy `--verbose`, w przeciwnym razie nic nie robi,
 - `Result` – wynik: `permutation`, czyli kolejność zadań (indeksy od 0), ta sama na każdej maszynie.
 
 Przykładowa implementacja to `Identity` (`algorithms/identity.h`): zwraca zadania w kolejności z pliku. Służy jako wzór
@@ -49,9 +50,11 @@ make clean
 
 ## Uruchamianie
 ```
-./main instances/instancja_100x20.txt
+./main instances/instancja_100x20.txt              # wynik na stdout
+./main instances/instancja_100x20.txt --verbose    # dodatkowo logi algorytmu na stderr
 ```
-Wczytuje instancję, uruchamia algorytm `Identity` i wypisuje permutację. Kolejne kroki (ocena rozwiązania, kolejne algorytmy) dochodzą do tego samego przepływu.
+Wczytuje instancję, uruchamia algorytm `Identity` i wypisuje permutację. Z `--verbose` na stderr pojawiają się komunikaty
+algorytmu w postaci `[nazwa] tekst`; stdout jest taki sam jak bez flagi, więc wynik można przekierować bez logów. Kolejne kroki (ocena rozwiązania, kolejne algorytmy) dochodzą do tego samego przepływu.
 
 ## Generator instancji
 Osobny program (`alg/tools/generator.cpp`), niezależny od algorytmów. Zapisuje instancję w formacie z `docs/format.md`
