@@ -184,6 +184,29 @@ Population nextGeneration(const Instance &inst, const Population &pop, const Set
   return next;
 }
 
+// ---------- statystyki do --verbose ----------
+
+// Pokazuje, czy potomkowie są w stanie dogonić elitę i czy populacja jest jeszcze różnorodna.
+// Niczego nie zmienia w populacji i nie używa losowania.
+void logStatistics(const Population &pop, int generation, const Logger &log) {
+  int bestChild = pop[1].fitness;
+  long long sum = 0;
+  std::vector<std::vector<int>> children;
+  for (size_t i = 1; i < pop.size(); ++i) { // pozycja 0 to elita
+    bestChild = std::min(bestChild, pop[i].fitness);
+    sum += pop[i].fitness;
+    children.push_back(pop[i].jobs);
+  }
+  std::sort(children.begin(), children.end());
+  int different = std::unique(children.begin(), children.end()) - children.begin();
+  int count = pop.size() - 1;
+
+  log("statystyki, pokolenie " + std::to_string(generation) + ": elita " + std::to_string(pop[0].fitness) +
+      " | najlepsze dziecko " + std::to_string(bestChild) + " | średnie dziecko " +
+      std::to_string((sum + count / 2) / count) + " | różnych dzieci " + std::to_string(different) + "/" +
+      std::to_string(count));
+}
+
 } // namespace
 
 Result Genetic::run(const Instance &inst, const Params &params, const Logger &log) const {
@@ -206,9 +229,15 @@ Result Genetic::run(const Instance &inst, const Params &params, const Logger &lo
   int mutationRate = cfg.mutation;
   log("najlepszy w populacji losowej: " + std::to_string(bestSoFar));
 
+  int reportEvery = std::max(1, cfg.generations / 10);
+
   for (int generation = 1; generation <= cfg.generations; ++generation) {
     pop = nextGeneration(inst, pop, cfg, mutationRate, rng);
     int best = bestIndex(pop);
+
+    // częściej na początku, bo wtedy populacja zmienia się najszybciej
+    if (generation == 1 || generation == 10 || generation == 30 || generation % reportEvery == 0)
+      logStatistics(pop, generation, log);
 
     if (pop[best].fitness < bestSoFar) {
       bestSoFar = pop[best].fitness;
