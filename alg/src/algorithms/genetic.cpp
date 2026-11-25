@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include "algorithms/common.h"
 #include "evaluator.h"
 
 namespace {
@@ -20,13 +21,6 @@ struct Settings {
   int localSearch = 1;    // 1 - poprawiaj elitę lokalnym przeszukiwaniem, 0 - nie
   int seed = 1;           // ziarno losowania (to samo ziarno = ten sam wynik)
 };
-
-int toInt(const std::string &name, double value, int min, int max) {
-  if (!(value >= min && value <= max) || value != static_cast<int>(value))
-    throw std::invalid_argument("parametr " + name + " musi być liczbą całkowitą od " + std::to_string(min) + " do " +
-                                std::to_string(max));
-  return static_cast<int>(value);
-}
 
 Settings readSettings(const Params &params) {
   Settings cfg;
@@ -70,25 +64,9 @@ struct Chromosome {
 
 using Population = std::vector<Chromosome>;
 
-// Liczba z zakresu 0..limit-1. Bez std::uniform_int_distribution, żeby wynik dla danego ziarna
-// nie zależał od kompilatora.
-int randomInt(std::mt19937 &rng, int limit) { return static_cast<int>(rng() % limit); }
-
-// Dwie różne pozycje z zakresu 0..n-1 (n >= 2).
-std::pair<int, int> twoPositions(std::mt19937 &rng, int n) {
-  int a = randomInt(rng, n);
-  int b = randomInt(rng, n - 1);
-  if (b >= a)
-    ++b;
-  return {a, b};
-}
-
 Chromosome randomChromosome(const Instance &inst, std::mt19937 &rng) {
   Chromosome chr;
-  for (int job = 0; job < inst.n; ++job)
-    chr.jobs.push_back(job);
-  for (int i = inst.n - 1; i > 0; --i)
-    std::swap(chr.jobs[i], chr.jobs[randomInt(rng, i + 1)]);
+  chr.jobs = randomPermutation(rng, inst.n);
   chr.fitness = makespan(inst, chr.jobs);
   return chr;
 }
@@ -156,13 +134,6 @@ void mutate(const Instance &inst, Chromosome &chr, std::mt19937 &rng) {
   chr.optimized = false;
 }
 
-// Przenosi zadanie z pozycji `from` na pozycję `to`, reszta zachowuje kolejność.
-void moveJob(std::vector<int> &jobs, int from, int to) {
-  int job = jobs[from];
-  jobs.erase(jobs.begin() + from);
-  jobs.insert(jobs.begin() + to, job);
-}
-
 // Lokalne przeszukiwanie przez wstawianie: próbuje przenieść zadanie na inną pozycję. Ruch zostaje,
 // jeśli skraca makespan, w przeciwnym razie jest cofany. Kończy, gdy pełne przejście nic nie poprawi.
 void localSearch(const Instance &inst, Chromosome &chr) {
@@ -213,6 +184,29 @@ Population nextGeneration(const Instance &inst, const Population &pop, const Set
   return next;
 }
 
+// ---------- statystyki do --verbose ----------
+
+// Pokazuje, czy potomkowie są w stanie dogonić elitę i czy populacja jest jeszcze różnorodna.
+// Niczego nie zmienia w populacji i nie używa losowania.
+void logStatistics(const Population &pop, int generation, const Logger &log) {
+  int bestChild = pop[1].fitness;
+  long long sum = 0;
+  std::vector<std::vector<int>> children;
+  for (size_t i = 1; i < pop.size(); ++i) { // pozycja 0 to elita
+    bestChild = std::min(bestChild, pop[i].fitness);
+    sum += pop[i].fitness;
+    children.push_back(pop[i].jobs);
+  }
+  std::sort(children.begin(), children.end());
+  int different = std::unique(children.begin(), children.end()) - children.begin();
+  int count = pop.size() - 1;
+
+  log("statystyki, pokolenie " + std::to_string(generation) + ": elita " + std::to_string(pop[0].fitness) +
+      " | najlepsze dziecko " + std::to_string(bestChild) + " | średnie dziecko " +
+      std::to_string((sum + count / 2) / count) + " | różnych dzieci " + std::to_string(different) + "/" +
+      std::to_string(count));
+}
+
 } // namespace
 
 Result Genetic::run(const Instance &inst, const Params &params, const Logger &log) const {
@@ -235,9 +229,15 @@ Result Genetic::run(const Instance &inst, const Params &params, const Logger &lo
   int mutationRate = cfg.mutation;
   log("najlepszy w populacji losowej: " + std::to_string(bestSoFar));
 
+  int reportEvery = std::max(1, cfg.generations / 10);
+
   for (int generation = 1; generation <= cfg.generations; ++generation) {
     pop = nextGeneration(inst, pop, cfg, mutationRate, rng);
     int best = bestIndex(pop);
+
+    // częściej na początku, bo wtedy populacja zmienia się najszybciej
+    if (generation == 1 || generation == 10 || generation == 30 || generation % reportEvery == 0)
+      logStatistics(pop, generation, log);
 
     if (pop[best].fitness < bestSoFar) {
       bestSoFar = pop[best].fitness;

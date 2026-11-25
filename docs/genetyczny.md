@@ -66,6 +66,17 @@ dwóch różnych rodziców. To samo ziarno i te same parametry dają zawsze ten 
 Z `--verbose` widać: parametry startowe, najlepszy wynik populacji losowej, każdą poprawę (z informacją, czy dało ją
 lokalne przeszukiwanie, czy krzyżowanie/mutacja) i każdą zmianę prawdopodobieństwa mutacji.
 
+Dodatkowo w pokoleniach 1, 10, 30 i co 1/10 wszystkich pokoleń pojawia się linia ze statystykami:
+```
+[genetic] statystyki, pokolenie 100: elita 15730 | najlepsze dziecko 15730 | średnie dziecko 15834 | różnych dzieci 357/499
+```
+| Pole | Znaczenie |
+|---|---|
+| elita | makespan osobnika na pozycji 0 (najlepszy z poprzedniego pokolenia, ewentualnie ulepszony) |
+| najlepsze dziecko | najlepszy z pozostałych osobników; mniej niż elita oznacza, że potomek ją pobił |
+| średnie dziecko | średni makespan potomków (zaokrąglony); gdy jest bliski elity, populacja się do niej upodobniła |
+| różnych dzieci | liczba różnych permutacji wśród potomków (nie mówi, jak bardzo się różnią) |
+
 ## 4. Różnice względem wersji w C
 
 | Zmiana | Powód |
@@ -135,6 +146,23 @@ ocen po `n·m` operacji); można je wyłączyć (`local_search=0`) albo zmniejsz
 
 Przewaga GA nad NEH maleje wraz z liczbą zadań (z ok. 5% do 0,7%), a NEH jest dużo szybszy.
 Parametry domyślne GA były dobierane na innych instancjach z tego samego generatora.
+
+### Znana słabość: duże instancje
+Przy ok. 100 zadaniach GA po pierwszym pokoleniu poprawia wynik już tylko nieznacznie. Pomiar po jednej instancji
+(ziarno generatora 1, parametry domyślne):
+
+| Rozmiar | 1 pokolenie | 1000 pokoleń | 1000 pokoleń, `local_search=0` | SA |
+|---|---|---|---|---|
+| 100×100 | 15734 | 15730 | 15637 | 15518 |
+| 100×10 | 7836 | 7836 | 7736 | 7587 |
+| 100×20 | 9013 | 8978 | 8904 | 8732 |
+| 50×10 | 4327 | 4201 | 4208 | 4131 |
+| 20×5 | 1628 | 1575 | 1603 | 1580 |
+
+Lokalne przeszukiwanie w pierwszym pokoleniu daje elitę dużo lepszą od reszty, a populacja z czasem zbliża się do niej
+i przestaje się poprawiać. To, czy przyczyną jest zbyt silna elita, czy krzyżowanie, nie zostało jeszcze rozstrzygnięte.
+Dlatego wcześniejsza obserwacja, że lokalne przeszukiwanie pomaga przy 100 zadaniach (pomiar przy populacji 200),
+nie jest ogólną regułą.
 
 ## 6. Czego nie ma
 Limitu czasu i przerywania obliczeń (potrzebne w etapie 2).
