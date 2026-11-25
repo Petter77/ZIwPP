@@ -56,7 +56,7 @@ dzięki czemu ich wyniki są porównywalne.
 
 ## 3. Jak algorytm jest używany
 
-Tak robi to dziś `alg/src/main.cpp`:
+W uproszczeniu tak robi to `alg/src/main.cpp` (algorytm wybiera tam funkcja `makeAlgorithm` na podstawie `--algo`):
 
 ```cpp
 Instance inst = Instance::load(argv[1]);      // 1. wczytaj instancję z pliku
@@ -101,7 +101,7 @@ Ta sama instancja może być użyta przez kilka algorytmów, bo `run` jej nie zm
      return result;
    }
    ```
-4. W `main.cpp` dodaj `#include "algorithms/greedy.h"` i użyj klasy tak jak `Identity` w punkcie 3.
+4. W `main.cpp` dodaj `#include "algorithms/greedy.h"`, dopisz nazwę w `makeAlgorithm` i w komunikacie użycia.
 5. Zbuduj `make` w katalogu `alg/` – Makefile sam dołącza nowe pliki z `src/`.
 
 ## 5. Zasady dla algorytmów
@@ -115,7 +115,7 @@ Ta sama instancja może być użyta przez kilka algorytmów, bo `run` jej nie zm
 Program uruchomiony z `--verbose` pokazuje, co dzieje się wewnątrz algorytmu:
 
 ```
-./main instances/plik.txt --verbose
+./main instances/plik.txt --algo identity --verbose
 [identity] zwracam kolejność z pliku (8 zadań)
 ```
 
@@ -130,10 +130,10 @@ Program uruchomiony z `--verbose` pokazuje, co dzieje się wewnątrz algorytmu:
 `algorithms/identity.h` i `src/algorithms/identity.cpp`. Zwraca zadania w kolejności z pliku (`0, 1, …, n-1`)
 i loguje jeden komunikat jako przykład użycia `log`.
 Służy jako wzór klasy pochodnej i punkt odniesienia dla prawdziwych algorytmów, a nie jako algorytm do oddania.
+Przykład algorytmu z parametrami, ziarnem i sprawdzaniem wartości: `Genetic` (`genetyczny.md`).
 
 ## 8. Czego jeszcze nie ma
 - **Pełny harmonogram (czasy rozpoczęcia przezbrojeń i operacji)** – będzie potrzebny do diagramu Gantta w etapie 2.
 - **Opis parametrów, strukturalny postęp (zamiast samego tekstu), przerywanie, czas pracy** – potrzebne GUI w etapie 2; będzie można je dodać bez zmiany
   istniejących algorytmów.
-- **Wybór algorytmu po nazwie z linii poleceń** – `main` tworzy na razie `Identity` na stałe; rejestr algorytmów dojdzie,
-  gdy będzie ich więcej.
+- **Rejestr algorytmów** – wybór po nazwie (`--algo`) to na razie prosta funkcja `makeAlgorithm` w `main.cpp`.

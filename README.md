@@ -5,7 +5,7 @@ od kolejności"
 
 ## Algorytmy
 - Heurystyczny - (?) // Bartek
-- Metaheurystyczny - (?)
+- Metaheurystyczny - algorytm genetyczny (opis: `docs/genetyczny.md`)
 - Dodatkowy metaheurystyczny (5.0) - (?)
 - Algorytm dokładny (5.0) - (?) // Bartek
 
@@ -29,7 +29,7 @@ class Algorithm {
 };
 ```
 - `Instance` – wczytana instancja (algorytm nigdy nie czyta ani nie zapisuje plików),
-- `Params` – parametry algorytmu jako mapa `nazwa -> liczba` (na razie nieużywane),
+- `Params` – parametry algorytmu jako mapa `nazwa -> liczba`,
 - `Logger` – funkcja, do której algorytm zgłasza, co robi (`log("tekst")`); działa przy `--verbose`, w przeciwnym razie nic nie robi,
 - `Result` – wynik: `permutation`, czyli kolejność zadań (indeksy od 0), ta sama na każdej maszynie, oraz jej `makespan`.
 
@@ -39,7 +39,7 @@ i punkt odniesienia.
 Makespan liczy wspólna dla wszystkich algorytmów funkcja `makespan(inst, permutation)` (`alg/include/evaluator.h`),
 według wzoru z `docs/format.md`.
 
-Nowy algorytm: skopiować `Identity`, zmienić nazwę i `run`, a w `main.cpp` użyć nowej klasy.
+Nowy algorytm: skopiować `Identity`, zmienić nazwę i `run`, a w `main.cpp` dopisać go w `makeAlgorithm`.
 
 Szczegóły użycia i instrukcja dodania algorytmu: `docs/algorytmy.md`.
 
@@ -51,11 +51,17 @@ make clean
 
 ## Uruchamianie
 ```
-./main instances/instancja_100x20.txt              # wynik na stdout
-./main instances/instancja_100x20.txt --verbose    # dodatkowo logi algorytmu na stderr
+./main <plik_instancji> [--algo genetic|identity] [--param nazwa=liczba]... [--verbose]
+
+./main instances/instancja_100x20.txt                              # algorytm genetyczny, wynik na stdout
+./main instances/instancja_100x20.txt --verbose                    # dodatkowo logi algorytmu na stderr
+./main instances/instancja_100x20.txt --param generations=300 --param seed=7
+./main instances/instancja_100x20.txt --algo identity              # kolejność z pliku
 ```
-Wczytuje instancję, uruchamia algorytm `Identity` i wypisuje permutację oraz jej makespan. Z `--verbose` na stderr pojawiają się komunikaty
-algorytmu w postaci `[nazwa] tekst`; stdout jest taki sam jak bez flagi, więc wynik można przekierować bez logów. Kolejne algorytmy dochodzą do tego samego przepływu.
+Wczytuje instancję, uruchamia wybrany algorytm (domyślnie `genetic`) i wypisuje permutację (zadania numerowane od 0)
+oraz jej makespan. Parametry algorytmu genetycznego opisuje `docs/genetyczny.md`; `identity` nie ma parametrów
+i je ignoruje. Z `--verbose` na stderr pojawiają się komunikaty algorytmu w postaci `[nazwa] tekst`; stdout jest
+taki sam jak bez flagi, więc wynik można przekierować bez logów.
 
 ## Generator instancji
 Osobny program (`alg/tools/generator.cpp`), niezależny od algorytmów. Zapisuje instancję w formacie z `docs/format.md`
