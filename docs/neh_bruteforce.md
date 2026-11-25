@@ -2,44 +2,25 @@
 
 Dokumentacja części zaimplementowanej dla **Tematu 2** (permutacyjny problem przepływowy z przezbrojeniami zależnymi od kolejności, PFSP-SDST, kryterium: makespan) zgodnie z interfejsem z `docs/algorytmy.md` i modelem z `docs/format.md`.
 
-## 1. Struktura dodanych i zmienionych plików
-
-### Nowe pliki
+## 1. Pliki
 | Plik | Rola |
 |---|---|
-| `alg/include/algorithms/sdst_eval.h` | Tymczasowa funkcja pomocnicza `evaluateMakespan(inst, perm)` licząca makespan wg `docs/format.md` (do czasu pojawienia się modułu `Evaluator`). |
 | `alg/include/algorithms/neh.h`, `alg/src/algorithms/neh.cpp` | Algorytm heurystyczny `Neh` (`name() == "neh"`). |
 | `alg/include/algorithms/bruteforce.h`, `alg/src/algorithms/bruteforce.cpp` | Algorytm dokładny `BruteForce` (`name() == "bruteforce"`). |
-| `alg/tests/test_algorithms.cpp` | Samodzielny program testowy (umieszczony poza `alg/src/`, więc nie koliduje z `Makefile`). |
+| `alg/tests/test_algorithms.cpp` | Samodzielny program testowy (poza `alg/src/`, więc nie koliduje z `Makefile`). |
 | `benchmark_wyniki.txt` | Zestawienie czasów działania i jakości wyników z testów w WSL2 (Ubuntu, `g++ -O2`). |
-
-### Zmiany w istniejących plikach
-- **`alg/src/main.cpp`** — jedyny zmodyfikowany plik z dotychczasowego kodu. Dodano opcjonalny drugi argument linii poleceń:
-  ```bash
-  ./main <plik_instancji> [identity|neh|bruteforce]
-  ```
-  Bez drugiego argumentu nadal uruchamia domyślny `identity` (100% zgodności wstecznej).
-- **Pozostałe pliki bez zmian:** `Makefile`, `algorithm.h`, `instance.h`, `instance.cpp`, `identity.h`, `identity.cpp`, `generator.cpp`. `Makefile` automatycznie wykrywa i kompiluje nowe pliki `.cpp` z `alg/src/algorithms/`.
 
 ## 2. Zgodność z interfejsem `Algorithm` i modelem
 
 Oba algorytmy dziedziczą po `Algorithm` (`alg/include/algorithm.h`):
 - są bezstanowe (`run` jest `const`), nie modyfikują `Instance`,
-- nie czytają ani nie zapisują plików, nie wypisują nic na `stdout`/`stderr`,
-- zawsze zwracają kompletną, poprawną permutację `0..n-1` w `Result::permutation`.
+- nie czytają ani nie zapisują plików i niczego nie wypisują; zdarzenia zgłaszają przez `log` (`--verbose`),
+- zwracają kompletną, poprawną permutację `0..n-1` i jej makespan w `Result`.
 
-### Model oceny (`sdst_eval.h`)
-Zaimplementowano dokładnie wzór z `docs/format.md` (wariant przezbrojeń *anticipatory* oraz dodatnie przezbrojenie początkowe `s[i][k][k]`):
-```text
-C[i][k] = max( C[i][k-1] + s[i][π(k-1)][π(k)], C[i-1][k] ) + p[i][π(k)]
-```
-Obliczenia wewnętrzne używają typu `long long`, aby uniknąć przepełnienia przy dużych wartościach `p` i `s`. Funkcja `evaluateMakespan` obsługuje zarówno pełne, jak i częściowe permutacje (wykorzystywane w NEH).
+Makespan liczy wspólna funkcja `makespan` z `alg/include/evaluator.h` (wzór z `format.md`); obsługuje też częściowe
+permutacje, z czego korzysta NEH. `BruteForce` liczy ten sam wzór przyrostowo w trakcie przeglądu (na `long long`).
 
-> **Uwaga integracyjna (dla przyszłego modułu `Evaluator`):**
-> Nagłówek `sdst_eval.h` celowo umieszczono w `include/algorithms/` pod inną nazwą, żeby nie kolidował z planowanym `include/evaluator.h`. Gdy dojdzie docelowy `Evaluator` i pole `Result::makespan`, wystarczy:
-> 1. w `neh.cpp` podmienić wywołanie `evaluateMakespan` na `Evaluator` i zapisać `result.makespan`,
-> 2. w `bruteforce.cpp` dopisać `result.makespan = bestMakespan;`,
-> 3. usunąć `sdst_eval.h` (po aktualizacji `tests/test_algorithms.cpp`).
+Logi: NEH zgłasza posortowanie zadań i każdy krok wstawiania, BruteForce – początek, każdy nowy najlepszy wynik i koniec.
 
 ## 3. Opis algorytmów
 
@@ -65,24 +46,24 @@ Obliczenia wewnętrzne używają typu `long long`, aby uniknąć przepełnienia 
   - Zamiast przeliczać całą permutację od zera dla każdego liścia, aktualizuje tablicę `completion[depth][i]` przyrostowo wyłącznie dla bieżącej głębokości `depth` (czas `O(m)` na węzeł drzewa).
 - **Złożoność:** czasowa `O(n! * m)`, pamięciowa `O(n * m)`.
 
-## 4. Budowanie i uruchamianie (WSL2 / Linux, g++17)
+## 4. Budowanie i uruchamianie (Linux / WSL2, g++17)
 
 ```bash
 cd alg
 make
 
-# Wygenerowanie przykładowej instancji i uruchomienie z CLI:
 ./generator 8 4 42 test_8x4.txt
-./main instances/test_8x4.txt              # domyślnie identity
-./main instances/test_8x4.txt neh
-./main instances/test_8x4.txt bruteforce
+./main instances/test_8x4.txt --algo neh
+./main instances/test_8x4.txt --algo bruteforce --verbose
+./main instances/test_8x4.txt --algo bruteforce --param max_n=12
 ```
 
 ### Testy jednostkowe i weryfikacyjne
 ```bash
 cd alg
+mkdir -p build
 g++ -std=c++17 -Wall -Wextra -O2 -Iinclude \
-  tests/test_algorithms.cpp src/instance.cpp \
+  tests/test_algorithms.cpp src/instance.cpp src/evaluator.cpp \
   src/algorithms/identity.cpp src/algorithms/neh.cpp src/algorithms/bruteforce.cpp \
   -o build/test_algorithms
 ./build/test_algorithms
@@ -104,8 +85,3 @@ Zakres testów w `alg/tests/test_algorithms.cpp`:
 - **`11x10`:** śr. Identity `1702.3`, śr. NEH `1434.0` (`0.016 ms`, śr. błąd `+4.38%`), śr. BruteForce `1374.0` (`5.26 s`).
 - **`100x20`:** śr. Identity `10651.8`, śr. NEH `9021.0` (`-15.30%`, `29.12 ms`).
 - **`500x20`:** śr. Identity `43876.0`, śr. NEH `38150.6` (`-13.04%`, `13.10 s`).
-
-## 6. Punkty pod dalszą integrację z resztą zespołu
-- **Registry / CLI:** po dodaniu rejestru algorytmów wystarczy zarejestrować `Neh` (`"neh"`) i `BruteForce` (`"bruteforce"`) oraz zastąpić tymczasowy `if/else` w `alg/src/main.cpp`.
-- **Evaluator / `Result::makespan`:** patrz uwaga integracyjna w sekcji 2.
-- **Etap 2 (GUI / parametry):** `BruteForce` przyjmuje opcjonalny parametr `"max_n"` (domyślnie `11`); `Neh` nie wymaga parametrów.

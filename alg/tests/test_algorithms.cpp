@@ -12,7 +12,7 @@
 #include "algorithms/bruteforce.h"
 #include "algorithms/identity.h"
 #include "algorithms/neh.h"
-#include "algorithms/sdst_eval.h"
+#include "evaluator.h"
 #include "instance.h"
 
 namespace {
@@ -39,7 +39,7 @@ long long referenceBruteForceMakespan(const Instance &inst) {
 
   long long best = std::numeric_limits<long long>::max();
   do {
-    long long cmax = evaluateMakespan(inst, perm);
+    long long cmax = makespan(inst, perm);
     if (cmax < best) {
       best = cmax;
     }
@@ -96,25 +96,25 @@ void testDocsFormatExample() {
   Instance inst = Instance::parse(input);
 
   // Weryfikujemy ręcznie policzone wartości dla wszystkich 6 permutacji.
-  check(evaluateMakespan(inst, {0, 1, 2}) == 71, "format.md [0,1,2] powinno dać 71");
-  check(evaluateMakespan(inst, {0, 2, 1}) == 91, "format.md [0,2,1] powinno dać 91");
-  check(evaluateMakespan(inst, {1, 0, 2}) == 77, "format.md [1,0,2] powinno dać 77");
-  check(evaluateMakespan(inst, {1, 2, 0}) == 82, "format.md [1,2,0] powinno dać 82");
-  check(evaluateMakespan(inst, {2, 0, 1}) == 91, "format.md [2,0,1] powinno dać 91");
-  check(evaluateMakespan(inst, {2, 1, 0}) == 98, "format.md [2,1,0] powinno dać 98");
+  check(makespan(inst, {0, 1, 2}) == 71, "format.md [0,1,2] powinno dać 71");
+  check(makespan(inst, {0, 2, 1}) == 91, "format.md [0,2,1] powinno dać 91");
+  check(makespan(inst, {1, 0, 2}) == 77, "format.md [1,0,2] powinno dać 77");
+  check(makespan(inst, {1, 2, 0}) == 82, "format.md [1,2,0] powinno dać 82");
+  check(makespan(inst, {2, 0, 1}) == 91, "format.md [2,0,1] powinno dać 91");
+  check(makespan(inst, {2, 1, 0}) == 98, "format.md [2,1,0] powinno dać 98");
 
   BruteForce bf;
-  Result bfRes = bf.run(inst, {});
+  Result bfRes = bf.run(inst, {}, noLog);
   check(isValidPermutation(bfRes.permutation, inst.n), "BruteForce zwrócił niepoprawną permutację");
-  check(evaluateMakespan(inst, bfRes.permutation) == 71, "BruteForce powinien znaleźć optimum 71");
+  check(makespan(inst, bfRes.permutation) == 71, "BruteForce powinien znaleźć optimum 71");
 
   Neh neh;
-  Result nehRes = neh.run(inst, {});
+  Result nehRes = neh.run(inst, {}, noLog);
   check(isValidPermutation(nehRes.permutation, inst.n), "NEH zwrócił niepoprawną permutację");
-  check(evaluateMakespan(inst, nehRes.permutation) >= 71, "NEH nie może mieć wyniku lepszego od optimum");
+  check(makespan(inst, nehRes.permutation) >= 71, "NEH nie może mieć wyniku lepszego od optimum");
 
   std::cout << "[OK] Test 1: przykład 3x2 z docs/format.md (optimum=71, NEH="
-            << evaluateMakespan(inst, nehRes.permutation) << ")\n";
+            << makespan(inst, nehRes.permutation) << ")\n";
 }
 
 // Test 2: Asymetria przezbrojeń — kolejność [1, 0] musi być wyraźnie lepsza od [0, 1].
@@ -129,14 +129,14 @@ void testAsymmetricSetup() {
       "1 1\n");
 
   Instance inst = Instance::parse(input);
-  long long c01 = evaluateMakespan(inst, {0, 1}); // [0,1]: wysokie przezbrojenie 0->1 = 50
-  long long c10 = evaluateMakespan(inst, {1, 0}); // [1,0]: niskie przezbrojenie 1->0 = 1
+  long long c01 = makespan(inst, {0, 1}); // [0,1]: wysokie przezbrojenie 0->1 = 50
+  long long c10 = makespan(inst, {1, 0}); // [1,0]: niskie przezbrojenie 1->0 = 1
   check(c10 < c01, "Kolejność [1, 0] powinna być krótsza niż [0, 1]");
 
   BruteForce bf;
   Neh neh;
-  Result bfRes = bf.run(inst, {});
-  Result nehRes = neh.run(inst, {});
+  Result bfRes = bf.run(inst, {}, noLog);
+  Result nehRes = neh.run(inst, {}, noLog);
 
   check(bfRes.permutation == std::vector<int>({1, 0}), "BruteForce powinien wybrać [1, 0]");
   check(nehRes.permutation == std::vector<int>({1, 0}), "NEH powinien wybrać [1, 0]");
@@ -151,15 +151,15 @@ void testEdgeCases() {
 
   for (auto [n, m] : std::vector<std::pair<int, int>>{{1, 1}, {1, 4}, {4, 1}}) {
     Instance inst = makeTestInstance(n, m, 77);
-    Result bfRes = bf.run(inst, {});
-    Result nehRes = neh.run(inst, {});
+    Result bfRes = bf.run(inst, {}, noLog);
+    Result nehRes = neh.run(inst, {}, noLog);
 
     check(isValidPermutation(bfRes.permutation, n), "BruteForce: niepoprawna permutacja (brzeg)");
     check(isValidPermutation(nehRes.permutation, n), "NEH: niepoprawna permutacja (brzeg)");
 
     long long refOpt = referenceBruteForceMakespan(inst);
-    long long bfCmax = evaluateMakespan(inst, bfRes.permutation);
-    long long nehCmax = evaluateMakespan(inst, nehRes.permutation);
+    long long bfCmax = makespan(inst, bfRes.permutation);
+    long long nehCmax = makespan(inst, nehRes.permutation);
 
     check(bfCmax == refOpt, "BruteForce nie zgadza się z referencją w przypadku brzegowym");
     check(nehCmax >= refOpt, "NEH zwrócił wynik niższy niż optimum");
@@ -186,16 +186,16 @@ void testCrossVerificationAndQuality() {
   for (const auto &c : cases) {
     Instance inst = makeTestInstance(c.n, c.m, c.seed);
 
-    Result idRes = id.run(inst, {});
-    Result nehRes = neh.run(inst, {});
-    Result bfRes = bf.run(inst, {});
+    Result idRes = id.run(inst, {}, noLog);
+    Result nehRes = neh.run(inst, {}, noLog);
+    Result bfRes = bf.run(inst, {}, noLog);
 
     check(isValidPermutation(nehRes.permutation, c.n), "NEH: niepoprawna permutacja");
     check(isValidPermutation(bfRes.permutation, c.n), "BruteForce: niepoprawna permutacja");
 
-    long long idCmax = evaluateMakespan(inst, idRes.permutation);
-    long long nehCmax = evaluateMakespan(inst, nehRes.permutation);
-    long long bfCmax = evaluateMakespan(inst, bfRes.permutation);
+    long long idCmax = makespan(inst, idRes.permutation);
+    long long nehCmax = makespan(inst, nehRes.permutation);
+    long long bfCmax = makespan(inst, bfRes.permutation);
 
     // Dla n <= 7 krzyżowo porównujemy DFS z niezależnym std::next_permutation.
     if (c.n <= 7) {
@@ -225,7 +225,7 @@ void testBruteForceLimit() {
   Instance tooBig = makeTestInstance(12, 2, 1);
   bool threwDefault = false;
   try {
-    bf.run(tooBig, {});
+    bf.run(tooBig, {}, noLog);
   } catch (const std::runtime_error &) {
     threwDefault = true;
   }
@@ -235,7 +235,7 @@ void testBruteForceLimit() {
   Instance sizeFive = makeTestInstance(5, 2, 2);
   bool threwCustom = false;
   try {
-    bf.run(sizeFive, {{"max_n", 4}});
+    bf.run(sizeFive, {{"max_n", 4}}, noLog);
   } catch (const std::runtime_error &) {
     threwCustom = true;
   }
@@ -253,14 +253,14 @@ void testNehScalability() {
     Instance inst = makeTestInstance(n, m, 42);
 
     auto start = std::chrono::steady_clock::now();
-    Result nehRes = neh.run(inst, {});
+    Result nehRes = neh.run(inst, {}, noLog);
     auto end = std::chrono::steady_clock::now();
     auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
     check(isValidPermutation(nehRes.permutation, n), "NEH: niepoprawna permutacja na dużej instancji");
 
-    long long idCmax = evaluateMakespan(inst, id.run(inst, {}).permutation);
-    long long nehCmax = evaluateMakespan(inst, nehRes.permutation);
+    long long idCmax = makespan(inst, id.run(inst, {}, noLog).permutation);
+    long long nehCmax = makespan(inst, nehRes.permutation);
 
     check(nehCmax < idCmax, "NEH powinien wyraźnie poprawić wynik względem Identity na dużej instancji");
 

@@ -20,13 +20,15 @@ void searchPermutations(const Instance &inst,
                         std::vector<char> &used,
                         std::vector<std::vector<long long>> &completion,
                         long long &bestMakespan,
-                        std::vector<int> &bestPerm) {
+                        std::vector<int> &bestPerm,
+                        const Logger &log) {
   // Jeśli wstawiliśmy już wszystkie n zadań, sprawdzamy uzyskany makespan.
   if (depth == inst.n) {
     long long makespan = completion[inst.n - 1][inst.m - 1];
     if (makespan < bestMakespan) {
       bestMakespan = makespan;
       bestPerm = currentPerm;
+      log("nowy najlepszy " + std::to_string(bestMakespan));
     }
     return;
   }
@@ -53,7 +55,7 @@ void searchPermutations(const Instance &inst,
     }
 
     // Schodzimy poziom głębiej, aby dobrać kolejne zadanie w permutacji.
-    searchPermutations(inst, depth + 1, currentPerm, used, completion, bestMakespan, bestPerm);
+    searchPermutations(inst, depth + 1, currentPerm, used, completion, bestMakespan, bestPerm, log);
 
     // Cofamy wybór zadania (backtracking), aby móc użyć go na innej pozycji.
     used[job] = 0;
@@ -62,7 +64,7 @@ void searchPermutations(const Instance &inst,
 
 } // namespace
 
-Result BruteForce::run(const Instance &inst, const Params &params) const {
+Result BruteForce::run(const Instance &inst, const Params &params, const Logger &log) const {
   Result result;
   if (inst.n <= 0) {
     return result;
@@ -88,8 +90,11 @@ Result BruteForce::run(const Instance &inst, const Params &params) const {
   std::vector<std::vector<long long>> completion(inst.n, std::vector<long long>(inst.m, 0));
   long long bestMakespan = std::numeric_limits<long long>::max();
 
-  searchPermutations(inst, 0, currentPerm, used, completion, bestMakespan, bestPerm);
+  log("przegląd wszystkich permutacji " + std::to_string(inst.n) + " zadań");
+  searchPermutations(inst, 0, currentPerm, used, completion, bestMakespan, bestPerm, log);
+  log("koniec: optimum " + std::to_string(bestMakespan));
 
   result.permutation = std::move(bestPerm);
+  result.makespan = static_cast<int>(bestMakespan);
   return result;
 }

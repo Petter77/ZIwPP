@@ -7,5 +7,5 @@
 class Identity : public Algorithm {
 public:
   std::string name() const override { return "identity"; }
-  Result run(const Instance &inst, const Params &params) const override;
+  Result run(const Instance &inst, const Params &params, const Logger &log) const override;
 };

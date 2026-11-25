@@ -3,17 +3,19 @@
 #include <algorithm>
 #include <cstddef>
 #include <limits>
+#include <string>
 #include <vector>
 
-#include "algorithms/sdst_eval.h"
+#include "evaluator.h"
 
-Result Neh::run(const Instance &inst, const Params &) const {
+Result Neh::run(const Instance &inst, const Params &, const Logger &log) const {
   Result result;
   if (inst.n <= 0) {
     return result;
   }
   if (inst.n == 1) {
     result.permutation = {0};
+    result.makespan = makespan(inst, result.permutation);
     return result;
   }
 
@@ -39,6 +41,8 @@ Result Neh::run(const Instance &inst, const Params &) const {
     return a < b;
   });
 
+  log("zadania posortowane malejąco po sumie czasów operacji");
+
   // Krok 2: Budujemy permutację przyrostowo — zaczynamy od zadania o największej sumie czasów.
   std::vector<int> currentPerm;
   currentPerm.reserve(inst.n);
@@ -49,7 +53,7 @@ Result Neh::run(const Instance &inst, const Params &) const {
 
   for (int step = 1; step < inst.n; ++step) {
     int nextJob = sortedJobs[step];
-    long long bestMakespan = std::numeric_limits<long long>::max();
+    int bestMakespan = std::numeric_limits<int>::max();
     std::size_t bestPos = 0;
 
     // Sprawdzamy wszystkie możliwe miejsca wstawienia kolejnego zadania (od początku do końca).
@@ -57,7 +61,7 @@ Result Neh::run(const Instance &inst, const Params &) const {
       candidate = currentPerm;
       candidate.insert(candidate.begin() + static_cast<std::ptrdiff_t>(pos), nextJob);
 
-      long long currentMakespan = evaluateMakespan(inst, candidate);
+      int currentMakespan = makespan(inst, candidate);
       if (currentMakespan < bestMakespan) {
         bestMakespan = currentMakespan;
         bestPos = pos;
@@ -66,8 +70,11 @@ Result Neh::run(const Instance &inst, const Params &) const {
 
     // Zostawiamy zadanie na pozycji, która dała najmniejszy częściowy makespan.
     currentPerm.insert(currentPerm.begin() + static_cast<std::ptrdiff_t>(bestPos), nextJob);
+    log("krok " + std::to_string(step + 1) + "/" + std::to_string(inst.n) + ": zadanie " + std::to_string(nextJob) +
+        " na pozycję " + std::to_string(bestPos) + ", częściowy makespan " + std::to_string(bestMakespan));
   }
 
   result.permutation = std::move(currentPerm);
+  result.makespan = makespan(inst, result.permutation);
   return result;
 }
