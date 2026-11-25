@@ -20,8 +20,26 @@ docs/                  format instancji, protokół GUI <-> algorytmy
 files/                 materiały z zajęć
 ```
 
-Nowy algorytm: klasa dziedzicząca po `Algorithm` (`alg/include/algorithm.h`) w `algorithms/` i wpis w `alg/src/registry.cpp`.
-Algorytmy nie znają konsoli ani gniazd – postęp i anulowanie przechodzą przez `RunContext`.
+## Interfejs algorytmów
+Każdy algorytm to osobna klasa dziedzicząca po `Algorithm` (`alg/include/algorithm.h`), w osobnych plikach:
+`alg/include/algorithms/<nazwa>.h` i `alg/src/algorithms/<nazwa>.cpp`. Makefile sam dołącza nowe pliki z `src/`.
+
+```cpp
+class Algorithm {
+  virtual std::string name() const = 0;
+  virtual Result run(const Instance &inst, const Params &params) const = 0;
+};
+```
+- `Instance` – wczytana instancja (algorytm nigdy nie czyta ani nie zapisuje plików),
+- `Params` – parametry algorytmu jako mapa `nazwa -> liczba` (na razie nieużywane),
+- `Result` – wynik: `permutation`, czyli kolejność zadań (indeksy od 0), ta sama na każdej maszynie.
+
+Przykładowa implementacja to `Identity` (`algorithms/identity.h`): zwraca zadania w kolejności z pliku. Służy jako wzór
+i punkt odniesienia. Wynik nie zawiera jeszcze makespanu, bo nie ma jeszcze modułu liczącego go (kolejny krok).
+
+Nowy algorytm: skopiować `Identity`, zmienić nazwę i `run`, a w `main.cpp` użyć nowej klasy.
+
+Szczegóły użycia i instrukcja dodania algorytmu: `docs/algorytmy.md`.
 
 ## Budowanie
 ```
@@ -33,7 +51,7 @@ make clean
 ```
 ./main instances/instancja_100x20.txt
 ```
-Na razie wczytuje instancję i wypisuje jej rozmiar. Kolejne kroki (ocena rozwiązania, algorytmy) dochodzą do tego samego przepływu.
+Wczytuje instancję, uruchamia algorytm `Identity` i wypisuje permutację. Kolejne kroki (ocena rozwiązania, kolejne algorytmy) dochodzą do tego samego przepływu.
 
 ## Generator instancji
 Osobny program (`alg/tools/generator.cpp`), niezależny od algorytmów. Zapisuje instancję w formacie z `docs/format.md`
