@@ -22,6 +22,7 @@ inline const Logger noLog = [](const std::string &) {};    // logger, który nic
 
 struct Result {
   std::vector<int> permutation;                  // kolejność zadań (indeksy od 0), ta sama na każdej maszynie
+  int makespan = 0;                              // makespan tej permutacji
 };
 
 class Algorithm {
@@ -39,6 +40,19 @@ public:
 | `Params` | parametry (np. liczba iteracji); algorytm bierze z mapy to, czego potrzebuje, brakujące wartości ustawia sam |
 | `Logger` / `log` | funkcja, którą algorytm wywołuje, żeby zgłosić, co robi; wywołujący zawsze przekazuje poprawną (`noLog`, gdy logowanie wyłączone) |
 | `Result::permutation` | permutacja `0..n-1`: każde zadanie dokładnie raz |
+| `Result::makespan` | wartość funkcji celu dla tej permutacji; algorytm liczy ją funkcją `makespan` |
+
+### Ocena rozwiązania (Evaluator)
+`alg/include/evaluator.h` udostępnia jedną funkcję, wspólną dla wszystkich algorytmów:
+
+```cpp
+int makespan(const Instance &inst, const std::vector<int> &permutation);
+```
+
+Liczy makespan według wzoru z `format.md`. Nie zmienia instancji i nie sprawdza permutacji, więc indeksy muszą być
+z zakresu `0..n-1`, bez powtórzeń. Permutacja może być częściowa (np. gdy algorytm buduje kolejność zadanie po zadaniu),
+dla pustej wynikiem jest `0`. Jedno wywołanie to `O(m·liczba zadań)`. Algorytmy nie liczą makespanu po swojemu,
+dzięki czemu ich wyniki są porównywalne.
 
 ## 3. Jak algorytm jest używany
 
@@ -78,10 +92,12 @@ Ta sama instancja może być użyta przez kilka algorytmów, bo `run` jej nie zm
    ```cpp
    #include "algorithms/greedy.h"
 
+   // na górze pliku także: #include "evaluator.h"
    Result Greedy::run(const Instance &inst, const Params &params, const Logger &log) const {
      log("start");
      Result result;
      // ... wyznacz result.permutation (n zadań, każde raz) ...
+     result.makespan = makespan(inst, result.permutation);
      return result;
    }
    ```
@@ -116,7 +132,7 @@ i loguje jeden komunikat jako przykład użycia `log`.
 Służy jako wzór klasy pochodnej i punkt odniesienia dla prawdziwych algorytmów, a nie jako algorytm do oddania.
 
 ## 8. Czego jeszcze nie ma
-- **Makespan w `Result`** – dojdzie z modułem oceny rozwiązania (Evaluator).
+- **Pełny harmonogram (czasy rozpoczęcia przezbrojeń i operacji)** – będzie potrzebny do diagramu Gantta w etapie 2.
 - **Opis parametrów, strukturalny postęp (zamiast samego tekstu), przerywanie, czas pracy** – potrzebne GUI w etapie 2; będzie można je dodać bez zmiany
   istniejących algorytmów.
 - **Wybór algorytmu po nazwie z linii poleceń** – `main` tworzy na razie `Identity` na stałe; rejestr algorytmów dojdzie,

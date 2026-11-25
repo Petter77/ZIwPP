@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     std::cout << "Algorytm: " << algorithm.name() << "\nPermutacja:";
     for (int job : result.permutation)
       std::cout << ' ' << job;
-    std::cout << "\n";
+    std::cout << "\nMakespan: " << result.makespan << "\n";
   } catch (const std::exception &e) {
     std::cerr << "Błąd: " << e.what() << "\n";
     return 1;
