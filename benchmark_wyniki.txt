@@ -1,0 +1,33 @@
+=====================================================================================================
+  BENCHMARK USREDNIONY (10 prob na rozmiar, ziarna 1..10): Identity vs NEH vs BruteForce
+  Temat 2: PFSP-SDST | Kompilator: g++ -std=c++17 -O2 (WSL2 Ubuntu)
+=====================================================================================================
+
+CZESC 1: Porownanie z algorytmem dokladnym BruteForce (10 instancji na rozmiar, do limitu max_n = 11)
+-----------------------------------------------------------------------------------------------------
+Rozmiar  Plik      Sr. Id.    Sr. NEH    Sr. OPT    Sr. blad   NEH (sr.)   BF (sr.)     BF (med.)    
+-----------------------------------------------------------------------------------------------------
+8x4      0.80 KB   899.2      731.8      707.9      3.43%      0.005 ms    2.66 ms      2.58 ms      
+9x4      1.00 KB   1006.7     812.6      774.0      5.04%      0.006 ms    25.38 ms     25.18 ms     
+10x5     1.53 KB   1202.8     974.7      936.5      4.05%      0.010 ms    281.74 ms    279.78 ms    
+11x5     1.83 KB   1209.9     1060.7     1009.0     5.16%      0.009 ms    3104.78 ms   3108.03 ms   
+11x10    3.63 KB   1702.3     1434.0     1374.0     4.38%      0.016 ms    5262.05 ms   5264.40 ms   
+
+Test zabezpieczenia BruteForce (12x5): POPRAWNA BLOKADA -> "BruteForce: zbyt duża liczba zadań (n = 12, limit max_n = 11)"
+
+
+CZESC 2: Skalowalnosc i jakosc NEH na duzych instancjach (10 instancji na rozmiar, do 500x20)
+-----------------------------------------------------------------------------------------------------
+Rozmiar  Plik      Wczyt.(sr.) Sr. Id.    Sr. NEH    Sr. pop.    NEH (sr.)    NEH (med.)   
+-----------------------------------------------------------------------------------------------------
+20x5     5.77 KB   0.2 ms      2101.8     1678.6     -20.10%     0.04 ms      0.03 ms      
+50x10    70.24 KB  2.3 ms      5215.9     4270.5     -18.08%     1.31 ms      1.45 ms      
+100x20   556.45 KB 17.1 ms     10651.8    9021.0     -15.30%     29.12 ms     30.49 ms     
+200x20   2.16 MB   67.4 ms     19171.6    16394.6    -14.47%     283.08 ms    280.13 ms    
+300x20   4.86 MB   146.6 ms    27421.9    23698.5    -13.56%     1429.18 ms   1367.43 ms   
+500x20   13.47 MB  426.0 ms    43876.0    38150.6    -13.04%     13096.53 ms  13070.98 ms  
+=====================================================================================================
+Uwagi:
+- Kazdy wiersz jest srednia z 10 niezaleznych instancji (ziarna 1..10).
+- Podano zarowno srednia (sr.), jak i mediane (med.) czasu wykonania dla odpornosci na skoki obciazenia CPU.
+- Czas wczytywania dotyczy dysku Linux (/tmp) w WSL2; na partycji Windows (/mnt/c) I/O moze byc wolniejsze.
