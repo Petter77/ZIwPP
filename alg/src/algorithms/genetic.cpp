@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include "algorithms/common.h"
 #include "evaluator.h"
 
 namespace {
@@ -20,13 +21,6 @@ struct Settings {
   int localSearch = 1;    // 1 - poprawiaj elitę lokalnym przeszukiwaniem, 0 - nie
   int seed = 1;           // ziarno losowania (to samo ziarno = ten sam wynik)
 };
-
-int toInt(const std::string &name, double value, int min, int max) {
-  if (!(value >= min && value <= max) || value != static_cast<int>(value))
-    throw std::invalid_argument("parametr " + name + " musi być liczbą całkowitą od " + std::to_string(min) + " do " +
-                                std::to_string(max));
-  return static_cast<int>(value);
-}
 
 Settings readSettings(const Params &params) {
   Settings cfg;
@@ -70,25 +64,9 @@ struct Chromosome {
 
 using Population = std::vector<Chromosome>;
 
-// Liczba z zakresu 0..limit-1. Bez std::uniform_int_distribution, żeby wynik dla danego ziarna
-// nie zależał od kompilatora.
-int randomInt(std::mt19937 &rng, int limit) { return static_cast<int>(rng() % limit); }
-
-// Dwie różne pozycje z zakresu 0..n-1 (n >= 2).
-std::pair<int, int> twoPositions(std::mt19937 &rng, int n) {
-  int a = randomInt(rng, n);
-  int b = randomInt(rng, n - 1);
-  if (b >= a)
-    ++b;
-  return {a, b};
-}
-
 Chromosome randomChromosome(const Instance &inst, std::mt19937 &rng) {
   Chromosome chr;
-  for (int job = 0; job < inst.n; ++job)
-    chr.jobs.push_back(job);
-  for (int i = inst.n - 1; i > 0; --i)
-    std::swap(chr.jobs[i], chr.jobs[randomInt(rng, i + 1)]);
+  chr.jobs = randomPermutation(rng, inst.n);
   chr.fitness = makespan(inst, chr.jobs);
   return chr;
 }
@@ -154,13 +132,6 @@ void mutate(const Instance &inst, Chromosome &chr, std::mt19937 &rng) {
   std::swap(chr.jobs[i], chr.jobs[j]);
   chr.fitness = makespan(inst, chr.jobs);
   chr.optimized = false;
-}
-
-// Przenosi zadanie z pozycji `from` na pozycję `to`, reszta zachowuje kolejność.
-void moveJob(std::vector<int> &jobs, int from, int to) {
-  int job = jobs[from];
-  jobs.erase(jobs.begin() + from);
-  jobs.insert(jobs.begin() + to, job);
 }
 
 // Lokalne przeszukiwanie przez wstawianie: próbuje przenieść zadanie na inną pozycję. Ruch zostaje,

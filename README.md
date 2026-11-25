@@ -6,7 +6,7 @@ od kolejności"
 ## Algorytmy
 - Heurystyczny - NEH (opis: `docs/neh_bruteforce.md`) // Bartek
 - Metaheurystyczny - algorytm genetyczny (opis: `docs/genetyczny.md`)
-- Dodatkowy metaheurystyczny (5.0) - (?)
+- Dodatkowy metaheurystyczny (5.0) - symulowane wyżarzanie (opis: `docs/wyzarzanie.md`)
 - Algorytm dokładny (5.0) - przegląd zupełny (opis: `docs/neh_bruteforce.md`) // Bartek
 
 ## Struktura repozytorium
@@ -51,17 +51,18 @@ make clean
 
 ## Uruchamianie
 ```
-./main <plik_instancji> [--algo genetic|neh|bruteforce|identity] [--param nazwa=liczba]... [--verbose]
+./main <plik_instancji> [--algo genetic|sa|neh|bruteforce|identity] [--param nazwa=liczba]... [--verbose]
 
 ./main instances/instancja_100x20.txt                              # algorytm genetyczny, wynik na stdout
 ./main instances/instancja_100x20.txt --verbose                    # dodatkowo logi algorytmu na stderr
 ./main instances/instancja_100x20.txt --param generations=300 --param seed=7
+./main instances/instancja_100x20.txt --algo sa                    # symulowane wyżarzanie
 ./main instances/instancja_100x20.txt --algo neh                   # heurystyka NEH
 ./main instances/mala.txt --algo bruteforce                        # dokładny, domyślnie do 11 zadań (--param max_n=...)
 ./main instances/instancja_100x20.txt --algo identity              # kolejność z pliku
 ```
 Wczytuje instancję, uruchamia wybrany algorytm (domyślnie `genetic`) i wypisuje permutację (zadania numerowane od 0)
-oraz jej makespan. Parametry algorytmu genetycznego opisuje `docs/genetyczny.md`, a `max_n` dla `bruteforce` –
+oraz jej makespan. Parametry algorytmu genetycznego opisuje `docs/genetyczny.md`, wyżarzania – `docs/wyzarzanie.md`, a `max_n` dla `bruteforce` –
 `docs/neh_bruteforce.md`; `neh` i `identity` nie mają parametrów i je ignorują. Z `--verbose` na stderr pojawiają się komunikaty algorytmu w postaci `[nazwa] tekst`; stdout jest
 taki sam jak bez flagi, więc wynik można przekierować bez logów.
 

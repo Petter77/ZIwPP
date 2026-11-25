@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "algorithms/annealing.h"
 #include "algorithms/bruteforce.h"
 #include "algorithms/genetic.h"
 #include "algorithms/identity.h"
@@ -30,6 +31,8 @@ static bool addParam(const std::string &text, Params &params) {
 static std::unique_ptr<Algorithm> makeAlgorithm(const std::string &name) {
   if (name == "genetic")
     return std::make_unique<Genetic>();
+  if (name == "sa")
+    return std::make_unique<Annealing>();
   if (name == "neh")
     return std::make_unique<Neh>();
   if (name == "bruteforce")
@@ -63,7 +66,7 @@ int main(int argc, char **argv) {
   std::unique_ptr<Algorithm> algorithm = makeAlgorithm(algorithmName);
   if (badUsage || path.empty() || !algorithm) {
     std::cerr << "Użycie: " << argv[0]
-              << " <plik_instancji> [--algo genetic|neh|bruteforce|identity] [--param nazwa=liczba]... [--verbose]\n";
+              << " <plik_instancji> [--algo genetic|sa|neh|bruteforce|identity] [--param nazwa=liczba]... [--verbose]\n";
     return 1;
   }
 
