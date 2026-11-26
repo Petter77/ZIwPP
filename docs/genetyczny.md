@@ -23,6 +23,19 @@ zwróć najlepszego osobnika
 Osobnik (`Chromosome`) to permutacja zadań i jej makespan (funkcja celu, im mniej, tym lepiej).
 Elita przechodzi do następnego pokolenia, więc najlepszy wynik nigdy się nie pogarsza.
 
+### Model wyspowy (opcjonalny, `islands` > 1)
+Zamiast jednej populacji działa kilka mniejszych („wysp”). Każda ma własną elitę, turnieje i potomków, a także
+własny licznik zastoju i własny poziom mutacji. `population` to liczba osobników **łącznie** (dzielona po równo;
+resztę dostają pierwsze wyspy), więc liczba ocen na pokolenie jest podobna jak przy jednej populacji.
+
+Co `migration_interval` pokoleń następuje **migracja po pierścieniu** (1 → 2 → … → ostatnia → 1): kopia najlepszego
+z wyspy zastępuje najgorszego na następnej. Najpierw zbierani są wszyscy migranci, więc jeden osobnik nie przechodzi
+od razu przez kilka wysp. Migrant lepszy od dotychczasowej elity wyspy liczy się jako jej poprawa (mutacja wraca do
+wartości początkowej). Najlepszy wynik nie może zginąć, bo zastępowany jest tylko najgorszy.
+
+W kodzie: struktura `Island`, funkcje `migrate` i `adaptMutation`; `nextGeneration` i operatory są te same co dla jednej
+populacji. Domyślnie `islands=1`, czyli algorytm działa jak opisany wyżej.
+
 ## 2. Operatory
 
 | Funkcja | Działanie |
@@ -47,7 +60,9 @@ Nieznana nazwa albo zła wartość kończy program komunikatem błędu.
 
 | Nazwa | Domyślnie | Znaczenie | Zakres |
 |---|---|---|---|
-| `population` | 500 | liczba osobników | 2 – 100000 |
+| `population` | 500 | liczba osobników (łącznie na wszystkich wyspach) | 2 – 100000 |
+| `islands` | 1 | liczba wysp; 1 – jedna populacja | 1 – 1000; każda wyspa ma mieć co najmniej 2 osobniki i więcej niż `tournament` |
+| `migration_interval` | 50 | co ile pokoleń migracja (przy `islands` > 1); 0 – bez migracji | 0 – 1000000 |
 | `generations` | 1000 | liczba pokoleń | 1 – 1000000 |
 | `tournament` | 3 | liczba kandydatów w turnieju | od 1, mniej niż `population` |
 | `mutation` | 5 | początkowe prawdopodobieństwo mutacji [%] | 0 – 100, nie więcej niż `mutation_max` |
@@ -142,6 +157,29 @@ pokoleń, a potem wynik stał: średni potomek jest blisko elity i kolejne pokol
 50%. Dla 200×20 (ziarno generatora 11) 2000 pokoleń dało to samo co 1000.
 
 **Czas przy parametrach domyślnych:** 100×20 ok. 3,5 s, 200×20 ok. 12 s, 100×100 ok. 25 s.
+
+### Model wyspowy – wynik pomiarów
+Strojenie na instancjach o ziarnach 11–13 (po 3 ziarna algorytmu), łącznie 500 osobników. „Zmiana” to średnia
+z procentowych zmian średniego makespanu względem jednej populacji przy tej samej liczbie pokoleń (minus = lepiej).
+
+| Pokolenia | Wyspy / migracja co | 20×5 | 50×10 | 100×10 | 100×20 | 200×20 | zmiana |
+|---|---|---|---|---|---|---|---|
+| 1000 | 1 (bez wysp) | 1577,9 | 4172,0 | 7739,0 | 8951,0 | 16429,9 | – |
+| 1000 | 2 / 50 | 1579,8 | 4204,9 | 7785,8 | 8960,6 | 16489,4 | +0,40% |
+| 1000 | 5 / bez migracji | 1573,9 | 4198,8 | 7804,1 | 9000,2 | 16524,0 | +0,47% |
+| 1000 | 5 / 25 | 1570,7 | 4200,3 | 7780,8 | 8977,4 | 16498,6 | +0,29% |
+| 1000 | 5 / 200 | 1565,8 | 4214,3 | 7799,1 | 8957,6 | 16512,9 | +0,32% |
+| 1000 | 10 / 50 | 1566,3 | 4196,7 | 7788,7 | 8991,3 | 16591,7 | +0,39% |
+| 3000 | 1 (bez wysp) | 1575,4 | 4161,6 | 7710,6 | 8939,6 | 16350,3 | – |
+| 3000 | 5 / 50 | 1568,2 | 4187,6 | 7745,7 | 8949,2 | 16389,1 | +0,19% |
+| 3000 | 5 / 200 | 1565,8 | 4183,3 | 7740,0 | 8917,0 | 16325,7 | −0,02% |
+| 3000 | 5 / 500 | 1569,8 | 4168,9 | 7712,1 | 8916,3 | 16341,3 | −0,10% |
+
+Sprawdzone były też warianty 1000 pokoleń: 5 / 10, 5 / 50, 5 / 100, 10 / 25 i 10 / 100 (zmiana od +0,36% do +0,43%).
+
+**Wniosek:** wyspy nie dały wyraźnej poprawy. Przy 1000 pokoleń pomagały tylko na 20×5, a średnio były gorsze. Przy 3000
+pokoleń z rzadką migracją wypadały mniej więcej na równi z jedną populacją (różnice w granicach szumu). Dlatego domyślnie
+są wyłączone. Test dla 6000 pokoleń został przerwany, zanim policzył warianty z wyspami.
 
 ## 6. Czego nie ma
 Limitu czasu i przerywania obliczeń (potrzebne w etapie 2).
