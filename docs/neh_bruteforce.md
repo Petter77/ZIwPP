@@ -75,6 +75,8 @@ Zakres testów w `alg/tests/test_algorithms.cpp`:
 4. Krzyżowa weryfikacja przyrostowego `BruteForce` z niezależnym `std::next_permutation` (`n = 5..7`) oraz porównanie `Identity` vs `NEH` vs `BruteForce` (`n = 5..8`).
 5. Weryfikacja rzucania wyjątku dla domyślnego (`n = 12`) i własnego (`max_n = 4`) limitu w `BruteForce`.
 6. Skalowalność i poprawność permutacji `NEH` dla `50x10` i `100x20`.
+7. Czasy bliskie zakresowi `int`: makespan większy niż zakres `int` bez przepełnienia.
+8. Wczytywanie: dane po ostatniej wartości (liczba, tekst, ułamek) są odrzucane, białe znaki dozwolone.
 
 ## 5. Wybrane wyniki z benchmarku (`benchmark_wyniki.txt`)
 

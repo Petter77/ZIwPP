@@ -22,7 +22,7 @@ inline const Logger noLog = [](const std::string &) {};    // logger, który nic
 
 struct Result {
   std::vector<int> permutation;                  // kolejność zadań (indeksy od 0), ta sama na każdej maszynie
-  int makespan = 0;                              // makespan tej permutacji
+  long long makespan = 0;                        // makespan tej permutacji
 };
 
 class Algorithm {
@@ -46,13 +46,17 @@ public:
 `alg/include/evaluator.h` udostępnia jedną funkcję, wspólną dla wszystkich algorytmów:
 
 ```cpp
-int makespan(const Instance &inst, const std::vector<int> &permutation);
+long long makespan(const Instance &inst, const std::vector<int> &permutation);
 ```
 
 Liczy makespan według wzoru z `format.md`. Nie zmienia instancji i nie sprawdza permutacji, więc indeksy muszą być
 z zakresu `0..n-1`, bez powtórzeń. Permutacja może być częściowa (np. gdy algorytm buduje kolejność zadanie po zadaniu),
 dla pustej wynikiem jest `0`. Jedno wywołanie to `O(m·liczba zadań)`. Algorytmy nie liczą makespanu po swojemu,
 dzięki czemu ich wyniki są porównywalne.
+
+Pojedyncze czasy `p` i `s` są typu `int`, ale ich suma może przekroczyć jego zakres (ok. 2,1 mld), dlatego makespan
+i wszystkie zmienne przechowujące wartość funkcji celu muszą być typu `long long`. Nie `long`: na Windowsie ma on
+tylko 32 bity.
 
 ## 3. Jak algorytm jest używany
 

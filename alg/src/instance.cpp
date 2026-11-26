@@ -35,7 +35,7 @@ Instance Instance::parse(std::istream &in) {
       for (int k = 0; k < inst.n; ++k)
         inst.s[i][j][k] = readValue(in, "s", i, j, k);
 
-  int extra;
+  std::string extra; // cokolwiek po ostatniej wartości, także tekst
   if (in >> extra)
     throw std::runtime_error("Błąd wczytywania instancji: nadmiarowe dane na końcu pliku");
 

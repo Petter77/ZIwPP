@@ -95,6 +95,6 @@ Result BruteForce::run(const Instance &inst, const Params &params, const Logger 
   log("koniec: optimum " + std::to_string(bestMakespan));
 
   result.permutation = std::move(bestPerm);
-  result.makespan = static_cast<int>(bestMakespan);
+  result.makespan = bestMakespan;
   return result;
 }

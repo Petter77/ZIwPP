@@ -273,6 +273,50 @@ void testNehScalability() {
   std::cout << "[OK] Test 6: wydajność i jakość NEH na dużych instancjach\n";
 }
 
+// Test 7: suma czasów większa niż zakres int nie może przepełnić makespanu.
+void testLargeValues() {
+  // 1 zadanie, 2 maszyny: 1 + 2000000000 (maszyna 1) + 2000000000 (maszyna 2)
+  std::istringstream one("1 2\n2000000000\n2000000000\n1\n1\n");
+  Instance single = Instance::parse(one);
+  check(makespan(single, {0}) == 4000000001LL, "makespan dużych wartości powinien wynosić 4000000001");
+
+  Instance inst = makeTestInstance(6, 3, 5, 2000000000, 2000000000);
+  long long optimum = referenceBruteForceMakespan(inst);
+  check(optimum > 2147483647LL, "instancja testowa powinna przekraczać zakres int");
+
+  BruteForce bf;
+  Neh neh;
+  Result bfRes = bf.run(inst, {}, noLog);
+  Result nehRes = neh.run(inst, {}, noLog);
+  check(bfRes.makespan == optimum, "BruteForce: zły makespan dla dużych wartości");
+  check(nehRes.makespan == makespan(inst, nehRes.permutation), "NEH: zły makespan dla dużych wartości");
+  check(nehRes.makespan >= optimum, "NEH poniżej optimum dla dużych wartości");
+
+  std::cout << "[OK] Test 7: duże wartości bez przepełnienia\n";
+}
+
+// Test 8: każde dane po ostatniej wartości (liczba lub tekst) to błąd wczytywania.
+void testTrailingData() {
+  const std::string valid = "2 1\n5 5\n1 1\n1 1\n";
+  auto loads = [](const std::string &text) {
+    std::istringstream input(text);
+    try {
+      Instance::parse(input);
+      return true;
+    } catch (const std::runtime_error &) {
+      return false;
+    }
+  };
+
+  check(loads(valid), "poprawny plik powinien się wczytać");
+  check(loads(valid + " \n\r\n\t\n"), "białe znaki na końcu są dozwolone");
+  for (std::string tail : {"7", "abc", "x", "-", ".5", "# komentarz"})
+    check(!loads(valid + tail + "\n"), "plik z nadmiarowym '" + tail + "' powinien być odrzucony");
+  check(!loads("2 1\n5 5\n1 1\n1 1.5\n"), "ułamek jako ostatnia wartość powinien być odrzucony");
+
+  std::cout << "[OK] Test 8: nadmiarowe dane na końcu pliku\n";
+}
+
 } // namespace
 
 int main() {
@@ -284,6 +328,8 @@ int main() {
     testCrossVerificationAndQuality();
     testBruteForceLimit();
     testNehScalability();
+    testLargeValues();
+    testTrailingData();
     std::cout << "=== Wszystkie testy zakończone sukcesem! ===\n";
     return 0;
   } catch (const std::exception &e) {

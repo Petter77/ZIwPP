@@ -61,11 +61,11 @@ std::vector<int> neighbour(const std::vector<int> &jobs, int insertPercent, std:
 // różnic w tej instancji. Gdy żaden z próbnych ruchów nie pogarsza wyniku, zwraca 1.
 double typicalWorsening(const Instance &inst, const std::vector<int> &jobs, int insertPercent, std::mt19937 &rng) {
   const int samples = 1000;
-  int value = makespan(inst, jobs);
+  long long value = makespan(inst, jobs);
   double sum = 0;
   int count = 0;
   for (int k = 0; k < samples; ++k) {
-    int delta = makespan(inst, neighbour(jobs, insertPercent, rng)) - value;
+    long long delta = makespan(inst, neighbour(jobs, insertPercent, rng)) - value;
     if (delta > 0) {
       sum += delta;
       ++count;
@@ -79,7 +79,7 @@ double typicalWorsening(const Instance &inst, const std::vector<int> &jobs, int 
 double temperatureFor(double delta, double percent) { return -delta / std::log(percent / 100.0); }
 
 // Lepszy lub równy sąsiad przechodzi zawsze, gorszy z prawdopodobieństwem exp(-delta / T).
-bool accept(int delta, double temperature, std::mt19937 &rng) {
+bool accept(long long delta, double temperature, std::mt19937 &rng) {
   if (delta <= 0)
     return true;
   double draw = rng() / 4294967296.0; // liczba z [0, 1); rng() daje 32 bity
@@ -102,9 +102,9 @@ Result Annealing::run(const Instance &inst, const Params &params, const Logger &
 
   std::mt19937 rng(cfg.seed);
   std::vector<int> current = randomPermutation(rng, inst.n);
-  int currentValue = makespan(inst, current);
+  long long currentValue = makespan(inst, current);
   std::vector<int> best = current;
-  int bestValue = currentValue;
+  long long bestValue = currentValue;
 
   // Dobór temperatur i chłodzenia geometrycznego: po każdej iteracji T = T * cooling,
   // tak żeby w ostatniej iteracji T było równe temperaturze końcowej.
@@ -125,7 +125,7 @@ Result Annealing::run(const Instance &inst, const Params &params, const Logger &
 
   for (int iteration = 1; iteration <= cfg.iterations; ++iteration) {
     std::vector<int> candidate = neighbour(current, cfg.insert, rng);
-    int value = makespan(inst, candidate);
+    long long value = makespan(inst, candidate);
 
     if (accept(value - currentValue, temperature, rng)) {
       if (value > currentValue)

@@ -58,7 +58,7 @@ Settings readSettings(const Params &params) {
 
 struct Chromosome {
   std::vector<int> jobs; // permutacja zadań
-  int fitness = 0;       // makespan (im mniej, tym lepiej)
+  long long fitness = 0; // makespan (im mniej, tym lepiej)
 };
 
 using Population = std::vector<Chromosome>;
@@ -141,7 +141,7 @@ void improveRandomJob(const Instance &inst, Chromosome &chr, std::mt19937 &rng) 
     if (to == from)
       continue;
     moveJob(chr.jobs, from, to);
-    int fitness = makespan(inst, chr.jobs);
+    long long fitness = makespan(inst, chr.jobs);
     moveJob(chr.jobs, to, from); // cofnij, zadanie przeniesiemy dopiero po sprawdzeniu wszystkich pozycji
     if (fitness < chr.fitness) {
       chr.fitness = fitness;
@@ -181,7 +181,7 @@ Population nextGeneration(const Instance &inst, const Population &pop, const Set
 // Pokazuje, czy potomkowie są w stanie dogonić elitę i czy populacja jest jeszcze różnorodna.
 // Niczego nie zmienia w populacji i nie używa losowania.
 void logStatistics(const Population &pop, int generation, const Logger &log) {
-  int bestChild = pop[1].fitness;
+  long long bestChild = pop[1].fitness;
   long long sum = 0;
   std::vector<std::vector<int>> children;
   for (size_t i = 1; i < pop.size(); ++i) { // pozycja 0 to elita
@@ -216,7 +216,7 @@ Result Genetic::run(const Instance &inst, const Params &params, const Logger &lo
   for (int i = 0; i < cfg.population; ++i)
     pop.push_back(randomChromosome(inst, rng));
 
-  int bestSoFar = pop[bestIndex(pop)].fitness;
+  long long bestSoFar = pop[bestIndex(pop)].fitness;
   int stagnation = 0;
   int mutationRate = cfg.mutation;
   log("najlepszy w populacji losowej: " + std::to_string(bestSoFar));
