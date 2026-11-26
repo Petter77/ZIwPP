@@ -112,17 +112,17 @@ Instancje **inne niż użyte do strojenia**, parametry domyślne, ziarno algoryt
 | Algorytm | optimum znalezione | średnia luka do optimum |
 |---|---|---|
 | NEH | 2 z 30 | 3,62% |
-| GA | 27 z 30 | 0,03% |
+| GA | 27 z 30 | 0,05% |
 | SA | 30 z 30 | 0,00% |
 
 Średni makespan z 10 instancji (ziarna 1–10); w nawiasie średni czas (zależy od komputera):
 
 | Rozmiar | NEH | GA | SA | SA lepszy od GA |
 |---|---|---|---|---|
-| 20×5 | 1678,6 (<0,01 s) | 1593,7 (0,2 s) | 1574,9 (0,1 s) | 9 z 10 |
-| 50×10 | 4270,5 (<0,01 s) | 4189,2 (0,5 s) | 4075,6 (0,6 s) | 10 z 10 |
-| 100×20 | 9021,0 (0,02 s) | 8882,1 (2,6 s) | 8723,4 (2,8 s) | 10 z 10 |
-| 200×20 | 16394,6 (0,1 s) | 16285,7 (9,5 s) | 16054,6 (7,5 s) | 10 z 10 |
+| 20×5 | 1678,6 (<0,01 s) | 1587,5 (0,2 s) | 1574,9 (0,1 s) | 9 z 10 |
+| 50×10 | 4270,5 (<0,01 s) | 4109,5 (0,6 s) | 4075,6 (0,6 s) | 7 z 10 |
+| 100×20 | 9021,0 (0,02 s) | 8845,0 (3,5 s) | 8723,4 (2,8 s) | 10 z 10 |
+| 200×20 | 16394,6 (0,1 s) | 16360,6 (12,4 s) | 16054,6 (7,0 s) | 10 z 10 |
 
 Przy parametrach domyślnych i podobnym lub krótszym czasie SA daje lepsze średnie niż GA. Dotyczy to instancji z tego
 generatora; na danych o innych zakresach nie sprawdzaliśmy.

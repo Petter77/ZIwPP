@@ -18,7 +18,7 @@ struct Settings {
   int mutationStep = 2;   // o ile rośnie przy stagnacji [punkty procentowe]
   int mutationMax = 50;   // górna granica [%]
   int stagnation = 20;    // po tylu pokoleniach bez poprawy mutacja zaczyna rosnąć
-  int localSearch = 1;    // 1 - poprawiaj elitę lokalnym przeszukiwaniem, 0 - nie
+  int localSearch = 1;    // ile procent potomków przechodzi lokalne ulepszanie (0 - wyłączone)
   int seed = 1;           // ziarno losowania (to samo ziarno = ten sam wynik)
 };
 
@@ -40,7 +40,7 @@ Settings readSettings(const Params &params) {
     else if (name == "stagnation")
       cfg.stagnation = toInt(name, value, 0, 1000000);
     else if (name == "local_search")
-      cfg.localSearch = toInt(name, value, 0, 1);
+      cfg.localSearch = toInt(name, value, 0, 100);
     else if (name == "seed")
       cfg.seed = toInt(name, value, 0, 2000000000);
     else
@@ -57,9 +57,8 @@ Settings readSettings(const Params &params) {
 // ---------- osobnik i populacja ----------
 
 struct Chromosome {
-  std::vector<int> jobs;  // permutacja zadań
-  int fitness = 0;        // makespan (im mniej, tym lepiej)
-  bool optimized = false; // true - po lokalnym przeszukiwaniu, nie ma czego powtarzać
+  std::vector<int> jobs; // permutacja zadań
+  int fitness = 0;       // makespan (im mniej, tym lepiej)
 };
 
 using Population = std::vector<Chromosome>;
@@ -131,44 +130,35 @@ void mutate(const Instance &inst, Chromosome &chr, std::mt19937 &rng) {
   auto [i, j] = twoPositions(rng, inst.n);
   std::swap(chr.jobs[i], chr.jobs[j]);
   chr.fitness = makespan(inst, chr.jobs);
-  chr.optimized = false;
 }
 
-// Lokalne przeszukiwanie przez wstawianie: próbuje przenieść zadanie na inną pozycję. Ruch zostaje,
-// jeśli skraca makespan, w przeciwnym razie jest cofany. Kończy, gdy pełne przejście nic nie poprawi.
-void localSearch(const Instance &inst, Chromosome &chr) {
-  bool improved = true;
-  while (improved) {
-    improved = false;
-    for (int from = 0; from < inst.n; ++from) {
-      for (int to = 0; to < inst.n; ++to) {
-        if (from == to)
-          continue;
-        moveJob(chr.jobs, from, to);
-        int fitness = makespan(inst, chr.jobs);
-        if (fitness < chr.fitness) {
-          chr.fitness = fitness;
-          improved = true;
-        } else {
-          moveJob(chr.jobs, to, from);
-        }
-      }
+// Lokalne ulepszanie: bierze jedno losowe zadanie, sprawdza je na każdej innej pozycji i zostawia na tej,
+// która daje najkrótszy makespan. Jeśli żadna nie jest lepsza, nic nie zmienia. Koszt: n-1 ocen.
+void improveRandomJob(const Instance &inst, Chromosome &chr, std::mt19937 &rng) {
+  int from = randomInt(rng, inst.n);
+  int bestPosition = from;
+  for (int to = 0; to < inst.n; ++to) {
+    if (to == from)
+      continue;
+    moveJob(chr.jobs, from, to);
+    int fitness = makespan(inst, chr.jobs);
+    moveJob(chr.jobs, to, from); // cofnij, zadanie przeniesiemy dopiero po sprawdzeniu wszystkich pozycji
+    if (fitness < chr.fitness) {
+      chr.fitness = fitness;
+      bestPosition = to;
     }
   }
-  chr.optimized = true;
+  if (bestPosition != from)
+    moveJob(chr.jobs, from, bestPosition);
 }
 
-// Nowe pokolenie: na pozycji 0 elita (najlepszy z poprzedniego, ewentualnie ulepszony),
-// reszta to potomkowie rodziców z turniejów, czasem zmutowani.
+// Nowe pokolenie: na pozycji 0 elita (kopia najlepszego z poprzedniego), reszta to potomkowie rodziców
+// z turniejów, czasem zmutowani i czasem lokalnie ulepszeni.
 Population nextGeneration(const Instance &inst, const Population &pop, const Settings &cfg, int mutationRate,
                           std::mt19937 &rng) {
   Population next;
   next.reserve(pop.size());
-
-  Chromosome elite = pop[bestIndex(pop)];
-  if (cfg.localSearch && !elite.optimized)
-    localSearch(inst, elite);
-  next.push_back(std::move(elite));
+  next.push_back(pop[bestIndex(pop)]);
 
   while (next.size() < pop.size()) {
     int first = tournamentSelect(pop, cfg.tournament, rng);
@@ -179,6 +169,8 @@ Population nextGeneration(const Instance &inst, const Population &pop, const Set
     Chromosome child = crossover(inst, pop[first], pop[second], rng);
     if (randomInt(rng, 100) < mutationRate)
       mutate(inst, child, rng);
+    if (randomInt(rng, 100) < cfg.localSearch)
+      improveRandomJob(inst, child, rng);
     next.push_back(std::move(child));
   }
   return next;
@@ -218,7 +210,7 @@ Result Genetic::run(const Instance &inst, const Params &params, const Logger &lo
   std::mt19937 rng(cfg.seed);
   log("start: populacja " + std::to_string(cfg.population) + ", pokolenia " + std::to_string(cfg.generations) +
       ", turniej " + std::to_string(cfg.tournament) + ", ziarno " + std::to_string(cfg.seed) +
-      ", lokalne przeszukiwanie " + (cfg.localSearch ? "tak" : "nie"));
+      ", lokalne ulepszanie " + std::to_string(cfg.localSearch) + "% potomków");
 
   Population pop;
   for (int i = 0; i < cfg.population; ++i)
@@ -243,9 +235,7 @@ Result Genetic::run(const Instance &inst, const Params &params, const Logger &lo
       bestSoFar = pop[best].fitness;
       stagnation = 0;
       mutationRate = cfg.mutation;
-      // elita stoi na pozycji 0, więc inny indeks oznacza, że poprawę dał potomek
-      log("pokolenie " + std::to_string(generation) + ": nowy najlepszy " + std::to_string(bestSoFar) +
-          (best == 0 ? " (lokalne przeszukiwanie elity)" : " (krzyżowanie/mutacja)") + ", mutacja " +
+      log("pokolenie " + std::to_string(generation) + ": nowy najlepszy " + std::to_string(bestSoFar) + ", mutacja " +
           std::to_string(mutationRate) + "%");
     } else {
       ++stagnation;
