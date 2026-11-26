@@ -148,6 +148,8 @@ Instancje nieużyte do wyboru wariantu, parametry domyślne, ziarno algorytmu 1.
 | 200×20 | 16394,6 | 16285,7 (9,4 s) | 16360,6 (12,4 s) | 4 z 10 | 16054,6 |
 | 100×100 | 15691,2 | 15656,4 (18,2 s) | 15563,4 (24,6 s) | 8 z 10 | 15452,6 |
 
+Kolumna SA pochodzi z wersji bez podgrzewania (`wyzarzanie.md`).
+
 Obecna wersja ma lepsze średnie dla pięciu z sześciu rozmiarów (o 0,4–1,9%), ale jest ok. 1,3 raza wolniejsza dla
 dużych instancji i **gorsza dla 200×20** (o 0,5%). SA ma lepsze średnie od obu wersji.
 
