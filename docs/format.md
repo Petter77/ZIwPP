@@ -34,7 +34,10 @@ puste linie są ignorowane przy wczytywaniu, tak jak każde inne białe znaki.
 - `n ≥ 1`, `m ≥ 1`,
 - `p[i][j] ≥ 1`,
 - `s[i][j][k] ≥ 1` (także przekątna `s[i][k][k]`: dokument wymaga `s ∈ N+`),
-- dokładnie tyle liczb, ile wynika z `n` i `m` – brak liczb lub nadmiar to błąd,
+- dokładnie tyle liczb, ile wynika z `n` i `m` – brak liczb to błąd, tak samo jak jakiekolwiek dane po ostatniej
+  liczbie (liczba albo tekst; dozwolone są tylko białe znaki),
+- każda wartość musi mieścić się w typie `int` (najwyżej 2147483647); sumy czasów mogą być większe, bo makespan
+  jest liczony na `long long`.
 
 Wczytywanie rzuca błąd z czytelnym komunikatem (wymaganie „odporna na błędy” w etapie 2).
 

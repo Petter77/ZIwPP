@@ -2,7 +2,7 @@
 
 #include "algorithm.h"
 
-// Symulowane wyżarzanie z automatycznym doborem temperatury i dwoma rodzajami ruchów.
+// Symulowane wyżarzanie z automatycznym doborem temperatury, dwoma rodzajami ruchów i podgrzewaniem.
 // Parametry (nazwy w Params) i ich opis: docs/wyzarzanie.md.
 class Annealing : public Algorithm {
 public:

@@ -18,7 +18,7 @@ inline const Logger noLog = [](const std::string &) {};
 // Wynik algorytmu: kolejność zadań (indeksy od 0), ta sama na każdej maszynie.
 struct Result {
   std::vector<int> permutation;
-  int makespan = 0; // wartość funkcji celu dla tej permutacji (evaluator.h)
+  long long makespan = 0; // wartość funkcji celu dla tej permutacji (evaluator.h)
 };
 
 // Klasa bazowa algorytmów. Każdy algorytm to osobna klasa w osobnym pliku (algorithms/).

@@ -53,7 +53,7 @@ Result Neh::run(const Instance &inst, const Params &, const Logger &log) const {
 
   for (int step = 1; step < inst.n; ++step) {
     int nextJob = sortedJobs[step];
-    int bestMakespan = std::numeric_limits<int>::max();
+    long long bestMakespan = std::numeric_limits<long long>::max();
     std::size_t bestPos = 0;
 
     // Sprawdzamy wszystkie możliwe miejsca wstawienia kolejnego zadania (od początku do końca).
@@ -61,7 +61,7 @@ Result Neh::run(const Instance &inst, const Params &, const Logger &log) const {
       candidate = currentPerm;
       candidate.insert(candidate.begin() + static_cast<std::ptrdiff_t>(pos), nextJob);
 
-      int currentMakespan = makespan(inst, candidate);
+      long long currentMakespan = makespan(inst, candidate);
       if (currentMakespan < bestMakespan) {
         bestMakespan = currentMakespan;
         bestPos = pos;

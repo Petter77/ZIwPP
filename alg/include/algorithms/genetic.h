@@ -2,7 +2,8 @@
 
 #include "algorithm.h"
 
-// Algorytm genetyczny z elitaryzmem, lokalnym przeszukiwaniem elity i adaptacyjną mutacją.
+// Algorytm genetyczny z elitaryzmem, lokalnym ulepszaniem części potomków, adaptacyjną mutacją i opcjonalnym
+// modelem wyspowym.
 // Parametry (nazwy w Params) i ich opis: docs/genetyczny.md.
 class Genetic : public Algorithm {
 public:
